@@ -1,0 +1,84 @@
+<!-- sections/list-collections-template.liquid -->
+
+{% paginate collections by section.settings.pagination_limit %}
+
+  {% assign collections_per_row = section.settings.collections_per_row %}
+
+  <div class="bg-highlight padded-section">
+    <div class="container">
+      <div class="sixteen columns clearfix collection_nav center">
+        <h1 class="title center{% if section.settings.collection_tags and tag_count <= tag_threshold %} collection_title_tags{% endif %}">{{ 'collections.general.title' | t }}</h1>
+      </div>
+    </div>
+  </div>
+
+  {% capture new_row %}
+    <br class="clear product_clear" />
+  {% endcapture %}
+
+  <div class="container">
+
+    {% for collection in collections %}
+      {% unless collection.handle == 'frontpage' %}
+        {% capture collection_title %}{{ collection.title | escape }}{% endcapture %}
+        <div class="{% if collections_per_row == 2 %}eight columns{% elsif collections_per_row == 3 %}one-third column{% else %}four columns{% endif %} thumbnail {% cycle 'even', 'odd' %}">
+          <a href="{{ collection.url }}" title="{{ collection_title }}">
+            {% if collection.image %}
+              <div class="ratio one-by-one contain primary" style="background-image:url({{ collection.image.src | collection_img_url: '580x'}})"></div>
+            {% elsif collection.products.first.featured_image %}
+              <div class="ratio one-by-one contain primary" style="background-image:url({{ collection.products.first.featured_image | product_img_url: '580x'}})"></div>
+            {% else %}
+              {% capture num %}{% cycle "1", "2", "3", "4", "5", "6" %}{% endcapture %}
+              {{ 'collection-' | append: num | placeholder_svg_tag: 'placeholder-svg' }}
+            {% endif %}
+
+            <div class="info">
+              <span class="title">{{ collection.title }}</span>
+            </div>
+          </a>
+        </div>
+
+        {% if collections_per_row == 2 %}
+          {% cycle '', new_row %}
+        {% elsif collections_per_row == 3 %}
+          {% cycle '', '', new_row %}
+        {% elsif collections_per_row == 4 %}
+          {% cycle '', '', '', new_row %}
+        {% endif %}
+      {% endunless %}
+    {% endfor %}
+
+    {% include 'pagination' %}
+
+  </div>
+
+{% endpaginate %}
+
+{% schema %}
+
+{
+  "name": "Collections",
+  "class": "collection-template-section",
+  "settings": [
+    {
+      "type": "range",
+      "id": "collections_per_row",
+      "label": "Collections per row",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "pagination_limit",
+      "label": "Collections per page",
+      "min": 1,
+      "max": 50,
+      "step": 1,
+      "default": 48
+    }
+  ]
+}
+
+{% endschema %}
